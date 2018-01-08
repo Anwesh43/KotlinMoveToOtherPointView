@@ -3,6 +3,7 @@ package ui.anwesome.com.movetootherpointview
 /**
  * Created by anweshmishra on 08/01/18.
  */
+import android.app.Activity
 import android.content.*
 import android.graphics.*
 import android.view.*
@@ -212,6 +213,13 @@ class MoveToOtherPointView(ctx:Context):View(ctx) {
             container?.startUpdating(x,y,{
                 animator.startAnimation()
             })
+        }
+    }
+    companion object {
+        fun create(activity:Activity):MoveToOtherPointView {
+            val view = MoveToOtherPointView(activity)
+            activity.setContentView(view)
+            return view
         }
     }
 }
