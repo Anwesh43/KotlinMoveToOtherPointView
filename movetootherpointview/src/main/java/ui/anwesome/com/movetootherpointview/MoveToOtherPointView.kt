@@ -28,12 +28,20 @@ class MoveToOtherPointView(ctx:Context):View(ctx) {
             canvas.drawCircle(0f,0f,size/2,paint)
             canvas.restore()
         }
-        fun update(stopcb:(Float)->Unit) {
+        fun update(updatecb:(Float)->Unit,stopcb:(Float)->Unit) {
+            state.update{
+                point = dest.clone()
+                orig = dest.clone()
+                stopcb(it)
+            }
+            updatecb(state.scale)
             point.updateToDest(orig,dest,state.scale)
         }
         fun startUpdating(x:Float,y:Float,startcb:()->Unit) {
-            dest = PointF(x,y)
-            state.startUpdating(startcb)
+            state.startUpdating{
+                dest = PointF(x,y)
+                startcb()
+            }
         }
     }
     data class State(var scale:Float = 0f,var dir:Float = 0f,var prevScale:Float = 0f) {
@@ -53,8 +61,34 @@ class MoveToOtherPointView(ctx:Context):View(ctx) {
             }
         }
     }
+    data class LineIndicator(var s:PointF,var e:PointF = s.clone(),var o:PointF = s.clone()) {
+        val state = State()
+        fun draw(canvas:Canvas,paint:Paint) {
+            paint.strokeWidth = 5f
+            paint.strokeCap = Paint.Cap.ROUND
+            canvas.drawLine(s.x,s.y,e.x,e.y,paint)
+        }
+        fun update(point:PointF) {
+            e = point.clone()
+        }
+        fun update(stopcb:(Float)->Unit) {
+            state.update{
+                o = e.clone()
+                s = e.clone()
+                stopcb(it)
+            }
+            s.updateToDest(o,e,state.scale)
+        }
+        fun startUpdating(x:Float,y:Float,startcb: () -> Unit) {
+            state.startUpdating {
+                e = PointF(x,y)
+                startcb()
+            }
+        }
+    }
 }
 fun PointF.updateToDest(orig:PointF,dest:PointF,scale:Float) {
     x = orig.x + (dest.x - orig.x)*scale
     y = orig.y + (dest.y - orig.y)*scale
 }
+fun PointF.clone():PointF  = PointF(x,y)
