@@ -31,11 +31,12 @@ class MoveToOtherPointView(ctx:Context):View(ctx) {
             canvas.drawCircle(0f,0f,size/2,paint)
             canvas.restore()
         }
-        fun update(updatecb:(PointF)->Unit,stopcb:(Float)->Unit) {
+        fun update(updatecb:(PointF)->Unit,stopcb:(PointF)->Unit) {
             state.update{
+                val t = orig.clone()
                 point = dest.clone()
                 orig = dest.clone()
-                stopcb(it)
+                stopcb(t)
             }
             updatecb(point)
             point.updateToDest(orig,dest,state.scale)
@@ -48,13 +49,13 @@ class MoveToOtherPointView(ctx:Context):View(ctx) {
         }
     }
     data class State(var scale:Float = 0f,var dir:Float = 0f,var prevScale:Float = 0f) {
-        fun update(stopcb:(Float)->Unit) {
+        fun update(stopcb:()->Unit) {
             scale += 0.1f*dir
             if(Math.abs(scale - prevScale) > 1) {
                 scale = prevScale + dir
                 dir = 0f
                 prevScale = scale
-                stopcb(scale)
+                stopcb()
             }
         }
         fun startUpdating(startcb:()->Unit) {
@@ -76,11 +77,11 @@ class MoveToOtherPointView(ctx:Context):View(ctx) {
         fun updateEnd(point:PointF) {
             e = point.clone()
         }
-        fun update(stopcb:(Float)->Unit) {
+        fun update(stopcb:(PointF)->Unit) {
             state.update{
                 o = e.clone()
                 s = e.clone()
-                stopcb(it)
+                stopcb(s)
             }
             s.updateToDest(o,e,state.scale)
         }
@@ -94,33 +95,72 @@ class MoveToOtherPointView(ctx:Context):View(ctx) {
     data class Container(var w:Float,var h:Float) {
         var moveToOtherPoint = MoveToOtherPoint(PointF(w/2,h/2),Math.min(w,h)/15)
         var lineIndicator = LineIndicator(PointF(w/2,h/2))
+        val state = ContainerState()
         var updateFns:LinkedList<()->Unit> = LinkedList()
         init {
-
+            state.addFn { it
+                moveToOtherPoint.update({
+                    lineIndicator.updateEnd(it)
+                },{
+                    lineIndicator.startUpdating(it.x,it.y,{
+                        it()
+                    })
+                })
+            }
+            state.addFn {
+                lineIndicator.update({
+                    moveToOtherPoint.startUpdating(it.x,it.y,{
+                        it()
+                    })
+                })
+            }
+            state.addFn{
+                moveToOtherPoint.update({
+                    lineIndicator.updateEnd(it)
+                },{
+                    lineIndicator.startUpdating(it.x,it.y,{
+                        it()
+                    })
+                })
+            }
+            state.addFn {
+                lineIndicator.update {
+                    it()
+                }
+            }
         }
         fun draw(canvas:Canvas,paint:Paint) {
             moveToOtherPoint.draw(canvas,paint)
             lineIndicator.draw(canvas,paint)
         }
         fun update(stopcb:()->Unit) {
-            
+            state.update(stopcb)
         }
-        fun startUpdating(startcb:()->Unit) {
-
+        fun startUpdating(x:Float,y:Float,startcb:()->Unit) {
+            state.startUpdating {
+                moveToOtherPoint.startUpdating(x,y,startcb)
+            }
         }
     }
-    data class ContainerState(var j:Int = 0) {
+    data class ContainerState(var j:Int = 0,var dir:Int = 0) {
         val updateFns:LinkedList<(()->Unit)->Unit> = LinkedList()
         fun addFn(updateFn:(()->Unit)->Unit) {
             updateFns.add(updateFn)
         }
-        fun update(stopcb:()->Unit) {
-            updateFns.get(j).invoke {
+        fun update(stopcb: () -> Unit) {
+            updateFns.get(j).invoke({
                 j++
                 if(j == updateFns.size) {
-                    j = 0
                     stopcb()
+                    j = 0
+                    dir = 0
                 }
+            })
+        }
+        fun startUpdating(startcb: () -> Unit) {
+            if(dir == 0) {
+                dir = 1
+                startcb()
             }
         }
     }
