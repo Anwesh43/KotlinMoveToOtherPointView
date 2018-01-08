@@ -164,6 +164,31 @@ class MoveToOtherPointView(ctx:Context):View(ctx) {
             }
         }
     }
+    data class Animator(var view:MoveToOtherPointView,var animated:Boolean = false) {
+        fun animate(updatecb:()->Unit) {
+            if(animated) {
+                updatecb()
+                try {
+                    Thread.sleep(50)
+                    view.invalidate()
+                }
+                catch(ex:Exception) {
+
+                }
+            }
+        }
+        fun startAnimation() {
+            if(!animated) {
+                animated = true
+                view.postInvalidate()
+            }
+        }
+        fun stop() {
+            if(animated) {
+                animated = false
+            }
+        }
+    }
 }
 fun PointF.updateToDest(orig:PointF,dest:PointF,scale:Float) {
     x = orig.x + (dest.x - orig.x)*scale
