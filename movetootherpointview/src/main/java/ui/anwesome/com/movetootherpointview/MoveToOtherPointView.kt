@@ -189,6 +189,30 @@ class MoveToOtherPointView(ctx:Context):View(ctx) {
             }
         }
     }
+    data class Renderer(var view:MoveToOtherPointView,var time:Int = 0) {
+        val animator = Animator(view)
+        var container:Container?=null
+        fun render(canvas:Canvas,paint:Paint) {
+            if(time == 0) {
+                val w = canvas.width.toFloat()
+                val h = canvas.height.toFloat()
+                container = Container(w,h)
+            }
+            canvas.drawColor(Color.parseColor("#212121"))
+            container?.draw(canvas,paint)
+            time++
+            animator.animate{
+                container?.update{
+                    animator.stop()
+                }
+            }
+        }
+        fun handleTap(x:Float,y:Float) {
+            container?.startUpdating(x,y,{
+                animator.startAnimation()
+            })
+        }
+    }
 }
 fun PointF.updateToDest(orig:PointF,dest:PointF,scale:Float) {
     x = orig.x + (dest.x - orig.x)*scale
