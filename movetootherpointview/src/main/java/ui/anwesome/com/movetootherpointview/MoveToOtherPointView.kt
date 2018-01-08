@@ -6,6 +6,9 @@ package ui.anwesome.com.movetootherpointview
 import android.content.*
 import android.graphics.*
 import android.view.*
+import java.util.*
+import java.util.concurrent.ConcurrentLinkedQueue
+
 class MoveToOtherPointView(ctx:Context):View(ctx) {
     val paint = Paint(Paint.ANTI_ALIAS_FLAG)
     override fun onDraw(canvas:Canvas) {
@@ -28,13 +31,13 @@ class MoveToOtherPointView(ctx:Context):View(ctx) {
             canvas.drawCircle(0f,0f,size/2,paint)
             canvas.restore()
         }
-        fun update(updatecb:(Float)->Unit,stopcb:(Float)->Unit) {
+        fun update(updatecb:(PointF)->Unit,stopcb:(Float)->Unit) {
             state.update{
                 point = dest.clone()
                 orig = dest.clone()
                 stopcb(it)
             }
-            updatecb(state.scale)
+            updatecb(point)
             point.updateToDest(orig,dest,state.scale)
         }
         fun startUpdating(x:Float,y:Float,startcb:()->Unit) {
@@ -56,7 +59,9 @@ class MoveToOtherPointView(ctx:Context):View(ctx) {
         }
         fun startUpdating(startcb:()->Unit) {
             if(dir == 0f) {
-                dir = 1-2*scale
+                dir = 1f
+                prevScale = 0f
+                scale = 0f
                 startcb()
             }
         }
@@ -68,7 +73,7 @@ class MoveToOtherPointView(ctx:Context):View(ctx) {
             paint.strokeCap = Paint.Cap.ROUND
             canvas.drawLine(s.x,s.y,e.x,e.y,paint)
         }
-        fun update(point:PointF) {
+        fun updateEnd(point:PointF) {
             e = point.clone()
         }
         fun update(stopcb:(Float)->Unit) {
@@ -84,6 +89,24 @@ class MoveToOtherPointView(ctx:Context):View(ctx) {
                 e = PointF(x,y)
                 startcb()
             }
+        }
+    }
+    data class Container(var w:Float,var h:Float) {
+        var moveToOtherPoint = MoveToOtherPoint(PointF(w/2,h/2),Math.min(w,h)/15)
+        var lineIndicator = LineIndicator(PointF(w/2,h/2))
+        var updateFns:LinkedList<()->Unit> = LinkedList()
+        init {
+
+        }
+        fun draw(canvas:Canvas,paint:Paint) {
+            moveToOtherPoint.draw(canvas,paint)
+            lineIndicator.draw(canvas,paint)
+        }
+        fun update(stopcb:(Float)->Unit) {
+
+        }
+        fun startUpdating(startcb:()->Unit) {
+            
         }
     }
 }
