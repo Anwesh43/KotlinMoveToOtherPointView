@@ -19,7 +19,8 @@ class MoveToOtherPointView(ctx:Context):View(ctx) {
         }
         return true
     }
-    data class MoveToOtherPoint(var point:PointF,var size:Float,var orig:PointF = PointF(point.x,point.y)) {
+    data class MoveToOtherPoint(var point:PointF,var size:Float,var orig:PointF = PointF(point.x,point.y),var dest:PointF = orig) {
+        val state:State = State()
         fun draw(canvas:Canvas,paint:Paint) {
             canvas.save()
             canvas.translate(point.x,point.y)
@@ -28,10 +29,11 @@ class MoveToOtherPointView(ctx:Context):View(ctx) {
             canvas.restore()
         }
         fun update(stopcb:(Float)->Unit) {
-
+            point.updateToDest(orig,dest,state.scale)
         }
-        fun startUpdating(startcb:()->Unit) {
-
+        fun startUpdating(x:Float,y:Float,startcb:()->Unit) {
+            dest = PointF(x,y)
+            state.startUpdating(startcb)
         }
     }
     data class State(var scale:Float = 0f,var dir:Float = 0f,var prevScale:Float = 0f) {
@@ -51,4 +53,8 @@ class MoveToOtherPointView(ctx:Context):View(ctx) {
             }
         }
     }
+}
+fun PointF.updateToDest(orig:PointF,dest:PointF,scale:Float) {
+    x = orig.x + (dest.x - orig.x)*scale
+    y = orig.y + (dest.y - orig.y)*scale
 }
