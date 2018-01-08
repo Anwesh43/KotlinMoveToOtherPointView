@@ -81,9 +81,10 @@ class MoveToOtherPointView(ctx:Context):View(ctx) {
         }
         fun update(stopcb:(PointF)->Unit) {
             state.update{
+                val t = o.clone()
                 o = e.clone()
                 s = e.clone()
-                stopcb(s)
+                stopcb(t)
             }
             s.updateToDest(o,e,state.scale)
         }
