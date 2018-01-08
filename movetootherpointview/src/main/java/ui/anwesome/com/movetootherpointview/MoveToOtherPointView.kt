@@ -102,11 +102,26 @@ class MoveToOtherPointView(ctx:Context):View(ctx) {
             moveToOtherPoint.draw(canvas,paint)
             lineIndicator.draw(canvas,paint)
         }
-        fun update(stopcb:(Float)->Unit) {
-
+        fun update(stopcb:()->Unit) {
+            
         }
         fun startUpdating(startcb:()->Unit) {
-            
+
+        }
+    }
+    data class ContainerState(var j:Int = 0) {
+        val updateFns:LinkedList<(()->Unit)->Unit> = LinkedList()
+        fun addFn(updateFn:(()->Unit)->Unit) {
+            updateFns.add(updateFn)
+        }
+        fun update(stopcb:()->Unit) {
+            updateFns.get(j).invoke {
+                j++
+                if(j == updateFns.size) {
+                    j = 0
+                    stopcb()
+                }
+            }
         }
     }
 }
