@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/KotlinMoveToOtherPointView.iml" filepath="$PROJECT_DIR$/KotlinMoveToOtherPointView.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/movetootherpointview/movetootherpointview.iml" filepath="$PROJECT_DIR$/movetootherpointview/movetootherpointview.iml" />
+    </modules>
+  </component>
+</project>
